@@ -91,6 +91,18 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="landscape"
             ></activity>
+
+        <activity
+            android:name="com.bestar.student.DetailInSchoolActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:screenOrientation="landscape"
+            ></activity>
+
+        <activity
+            android:name="com.bestar.student.DetailOutSchoolActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:screenOrientation="landscape"
+            ></activity>
     </application>
 
 </manifest>

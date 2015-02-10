@@ -1,6 +1,7 @@
 package com.bestar.student;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -11,7 +12,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.bestar.student.Data.InSchoolBean;
-import com.bestar.student.Data.JsonData;
+import com.bestar.student.Util.JsonData;
 import com.bestar.student.Data.MyApplication;
 import com.bestar.student.Data.RequestServerFromHttp;
 
@@ -23,6 +24,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
     Button mSubmitBtn;
     RequestServerFromHttp mServer;
     String schoolId ;
+    String mUserId = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,8 +53,8 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
     Runnable inSchoolRunnable = new Runnable() {
         @Override
         public void run() {
-            String userId = mStudentIdEt.getText().toString();
-            String msg = mServer.InSchool(schoolId,userId);
+            mUserId = mStudentIdEt.getText().toString();
+            String msg = mServer.InSchool(schoolId,mUserId);
             InSchoolBean bean = new JsonData().jsonInSchool(msg);
             if (bean.getResult().equals("1")){
                 handler.sendEmptyMessage(1);
@@ -67,6 +69,9 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         public void handleMessage(Message msg) {
             if (msg.what == 1){
                 Toast.makeText(InSchoolActivity.this,"入园成功！",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(InSchoolActivity.this,DetailInSchoolActivity.class);
+                intent.putExtra("userId",mUserId);
+                startActivity(intent);
             }else{
                 Toast.makeText(InSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
             }

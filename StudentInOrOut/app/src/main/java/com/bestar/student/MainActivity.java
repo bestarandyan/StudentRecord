@@ -6,20 +6,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
-import com.bestar.student.Data.JsonData;
+import com.bestar.student.Util.JsonData;
 import com.bestar.student.Data.MyApplication;
-import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
-
-import java.util.List;
-import java.util.Map;
 
 
 public class MainActivity extends Activity implements View.OnClickListener{

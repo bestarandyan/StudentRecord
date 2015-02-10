@@ -20,6 +20,8 @@ import java.util.List;
 public class RequestServerFromHttp {
 	public static final String SERVER_ADDRESS = "http://pingban.iiyey.com/default.aspx";//外网服务器总接口地址
 	public static final String APPKEY = "e071ee980e80e9b5";//
+	public static final String IMGURL = "http://servercomponents.iiyey.com/";//
+
 
  	public String InSchool(String schoolId,String persionId){
  		String msgString = "";

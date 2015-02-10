@@ -1,11 +1,15 @@
 /**
  * 
  */
-package com.bestar.student.Data;
+package com.bestar.student.Util;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.bestar.student.Data.FamilyBean;
+import com.bestar.student.Data.InSchoolBean;
+import com.bestar.student.Data.OutSchoolBean;
+import com.bestar.student.Data.PersonBean;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
