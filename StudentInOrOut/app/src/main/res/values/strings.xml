@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">入园机</string>
+    <string name="ruyuan">入园</string>
+    <string name="chuyuan">出园</string>
+    <string name="queding">确定</string>
+
+</resources>
