@@ -34,6 +34,17 @@ public class JsonData {
         jsonFamily(jsonFimally,database);
 	}
 
+    public boolean isSuccessGetInfo(String msg,String tag){
+        boolean isSuccess = false;
+        String code = getJsonObject(msg,tag);
+        if (code != null && code.equals("0")){
+            isSuccess = true;
+        }else{
+            isSuccess = false;
+        }
+        return isSuccess;
+    }
+
     private void jsonStudents(String msg,SQLiteDatabase database){
         Type listType = new TypeToken<LinkedList<PersonBean>>(){}.getType();
         Gson gson = new Gson();
