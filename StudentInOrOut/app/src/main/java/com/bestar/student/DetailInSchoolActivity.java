@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class DetailInSchoolActivity extends Activity{
     ImageView mStudentHeadImg;
     TextView mNameTv,mXueHaoTv,mClassNameTv,mInSchoolTimeTv,mTiWenTv;
+    Button mOverBtn;
     String mUserId;
     DBHelper dbHelper = null;
     List<Map<String, Object>> personBeanList;
@@ -60,6 +63,14 @@ public class DetailInSchoolActivity extends Activity{
         mClassNameTv = (TextView) findViewById(R.id.ClassName);
         mInSchoolTimeTv = (TextView) findViewById(R.id.inSchoolTime);
         mTiWenTv = (TextView) findViewById(R.id.tiwenTv);
+        mOverBtn = (Button) findViewById(R.id.overBtn);
+        mOverBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
     }
 
     /**

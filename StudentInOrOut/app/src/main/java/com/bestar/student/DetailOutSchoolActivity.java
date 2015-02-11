@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -33,6 +35,7 @@ public class DetailOutSchoolActivity extends Activity{
     TextView mNameTv,mXueHaoTv,mClassNameTv,mInSchoolTimeTv,mTiWenTv;
     LinearLayout mFamilyLayout;
     String mUserId;
+    Button mOverBtn;
     DBHelper dbHelper = null;
     List<Map<String, Object>> personBeanList;
     List<Map<String, Object>> familyBeanList;
@@ -94,6 +97,13 @@ public class DetailOutSchoolActivity extends Activity{
         mClassNameTv = (TextView) findViewById(R.id.ClassName);
         mInSchoolTimeTv = (TextView) findViewById(R.id.inSchoolTime);
         mTiWenTv = (TextView) findViewById(R.id.tiwenTv);
+        mOverBtn = (Button) findViewById(R.id.overBtn);
+        mOverBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     /**

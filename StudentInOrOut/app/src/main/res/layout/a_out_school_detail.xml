@@ -239,7 +239,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/one" />
+                android:src="@drawable/meet" />
 
             <LinearLayout
                 android:id="@+id/familyLayout"
@@ -258,6 +258,7 @@
         android:layout_below="@id/centerLayout"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
+        android:id="@+id/overBtn"
         android:background="@drawable/selector_ruyuan_confirm_btn" />
 
 </RelativeLayout>

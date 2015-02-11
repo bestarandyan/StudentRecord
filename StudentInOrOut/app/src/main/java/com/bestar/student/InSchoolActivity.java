@@ -9,6 +9,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +24,7 @@ import com.bestar.student.Data.RequestServerFromHttp;
 public class InSchoolActivity extends Activity implements View.OnClickListener {
     TextView mStudentIdEt;
     Button mSubmitBtn;
+    ImageButton mNumberBtn0,mNumberBtn1,mNumberBtn2,mNumberBtn3,mNumberBtn4,mNumberBtn5,mNumberBtn6,mNumberBtn7,mNumberBtn8,mNumberBtn9;
     RequestServerFromHttp mServer;
     String schoolId ;
     String mUserId = "";
@@ -34,11 +36,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         mServer = new RequestServerFromHttp();
         initData();
     }
-    private void initView(){
-        mStudentIdEt = (TextView) findViewById(R.id.studentIdEt);
-        mSubmitBtn = (Button) findViewById(R.id.submitBtn);
-        mSubmitBtn.setOnClickListener(this);
-    }
+
 
     private void initData(){
         schoolId = MyApplication.getInstance().getSchoolId();
@@ -48,7 +46,31 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
         if(view == mSubmitBtn){
             new Thread(inSchoolRunnable).start();
+        }else if (view == mNumberBtn0){
+            addValue("0");
+        }else if (view == mNumberBtn1){
+            addValue("1");
+        }else if (view == mNumberBtn2){
+            addValue("2");
+        }else if (view == mNumberBtn3){
+            addValue("3");
+        }else if (view == mNumberBtn4){
+            addValue("4");
+        }else if (view == mNumberBtn5){
+            addValue("5");
+        }else if (view == mNumberBtn6){
+            addValue("6");
+        }else if (view == mNumberBtn7){
+            addValue("7");
+        }else if (view == mNumberBtn8){
+            addValue("8");
+        }else if (view == mNumberBtn9){
+            addValue("9");
         }
+    }
+
+    private void addValue(String value){
+        mStudentIdEt.setText(mStudentIdEt.getText().toString().trim()+value);
     }
 
     Runnable inSchoolRunnable = new Runnable() {
@@ -79,4 +101,31 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
             super.handleMessage(msg);
         }
     };
+
+
+    private void initView(){
+        mStudentIdEt = (TextView) findViewById(R.id.studentIdEt);
+        mSubmitBtn = (Button) findViewById(R.id.submitBtn);
+        mSubmitBtn.setOnClickListener(this);
+        mNumberBtn0 = (ImageButton) findViewById(R.id.numberBtn0);
+        mNumberBtn1 = (ImageButton) findViewById(R.id.numberBtn1);
+        mNumberBtn2 = (ImageButton) findViewById(R.id.numberBtn2);
+        mNumberBtn3 = (ImageButton) findViewById(R.id.numberBtn3);
+        mNumberBtn4 = (ImageButton) findViewById(R.id.numberBtn4);
+        mNumberBtn5 = (ImageButton) findViewById(R.id.numberBtn5);
+        mNumberBtn6 = (ImageButton) findViewById(R.id.numberBtn6);
+        mNumberBtn7 = (ImageButton) findViewById(R.id.numberBtn7);
+        mNumberBtn8 = (ImageButton) findViewById(R.id.numberBtn8);
+        mNumberBtn9 = (ImageButton) findViewById(R.id.numberBtn9);
+        mNumberBtn0.setOnClickListener(this);
+        mNumberBtn1.setOnClickListener(this);
+        mNumberBtn2.setOnClickListener(this);
+        mNumberBtn3.setOnClickListener(this);
+        mNumberBtn4.setOnClickListener(this);
+        mNumberBtn5.setOnClickListener(this);
+        mNumberBtn6.setOnClickListener(this);
+        mNumberBtn7.setOnClickListener(this);
+        mNumberBtn8.setOnClickListener(this);
+        mNumberBtn9.setOnClickListener(this);
+    }
 }

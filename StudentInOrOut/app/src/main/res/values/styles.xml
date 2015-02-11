@@ -13,4 +13,19 @@
         <item name="android:windowBackground">@null</item>
         <item name="android:backgroundDimEnabled">true</item><!--模糊 -->
     </style>
+
+
+    <style name="ThemeActivity" mce_bogus="1">
+        <item name="android:windowAnimationStyle">@style/AnimationActivity</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="AnimationActivity" parent="@android:style/Animation.Activity" mce_bogus="1">
+        <item name="android:activityOpenEnterAnimation">@anim/anim_fragment_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/anim_fragment_out</item>
+
+        <item name="android:activityCloseEnterAnimation">@anim/anim_fragment_close_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/anim_fragment_close_out</item>
+
+    </style>
 </resources>
