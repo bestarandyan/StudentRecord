@@ -4,44 +4,205 @@
     android:layout_height="match_parent"
     android:background="#fff"
     tools:context=".MainActivity">
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/background"
-        />
-    <EditText
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/schoolIdEt"
-        />
-    <Button
+        android:adjustViewBounds="true"
+        android:background="@drawable/background" />
+
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:id="@+id/submitBtn"
-        android:textColor="#fff"
-        android:background="#333"
-        android:layout_toRightOf="@id/schoolIdEt"
-        android:layout_marginLeft="20dp"
-        android:text="确定" />
-    <Button
+        android:layout_above="@+id/mainCenterLayout"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="true"
+        android:src="@drawable/logo" />
+
+    <LinearLayout
+        android:id="@+id/mainCenterLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/bg_frame"
+        android:gravity="bottom|center_horizontal"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/bg_frame_1"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="5dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_frame_2"
+                android:orientation="horizontal"
+                android:padding="5dp">
+
+                <TextView
+                    android:id="@+id/time1Tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/one" />
+
+                <TextView
+                    android:id="@+id/time2Tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/five" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:src="@drawable/point" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_frame_2"
+                android:orientation="horizontal"
+                android:padding="5dp">
+
+                <TextView
+                    android:id="@+id/time3Tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/five" />
+
+                <TextView
+                    android:id="@+id/time4Tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/eight" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/nian1tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_two" />
+
+                <TextView
+                    android:id="@+id/nian2tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_zero" />
+
+                <TextView
+                    android:id="@+id/nian3tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_one" />
+
+                <TextView
+                    android:id="@+id/nian4tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_four" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/x_point" />
+
+                <TextView
+                    android:id="@+id/yue1tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_zero" />
+
+                <TextView
+                    android:id="@+id/yue2tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_eight" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/x_point" />
+
+                <TextView
+                    android:id="@+id/day1tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_one" />
+
+                <TextView
+                    android:id="@+id/day2tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/x_nine" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/weekTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/wednesday" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mainCenterLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="@string/phone_text"
+        android:textColor="#88000000"
+        android:textSize="20sp" />
+
+    <View
+        android:id="@+id/centerView"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@id/mainCenterLayout"></View>
+
+    <Button
         android:id="@+id/ruyuanBtn"
-        android:textColor="#fff"
-        android:background="#333"
-        android:layout_below="@id/schoolIdEt"
-        android:text="@string/ruyuan" />
-    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:layout_below="@id/centerView"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="30dp"
+        android:layout_toLeftOf="@id/mainCenterLayout"
+        android:background="@drawable/selector_main_ruyuan_btn" />
+
+    <Button
         android:id="@+id/chuyuanBtn"
-        android:layout_below="@id/schoolIdEt"
-        android:textColor="#fff"
-        android:background="#333"
-        android:layout_alignParentRight="true"
-        android:text="@string/chuyuan" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/centerView"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="30dp"
+        android:layout_toRightOf="@id/mainCenterLayout"
+        android:background="@drawable/selector_main_chuyuan_btn" />
 
 </RelativeLayout>

@@ -18,7 +18,6 @@ import com.bestar.student.Data.FamilyBean;
 import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
 
-import org.w3c.dom.Text;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
