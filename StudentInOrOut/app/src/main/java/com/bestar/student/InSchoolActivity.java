@@ -9,6 +9,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bestar.student.Data.InSchoolBean;
@@ -20,7 +21,7 @@ import com.bestar.student.Data.RequestServerFromHttp;
  * Created by bestar on 2015/2/10.
  */
 public class InSchoolActivity extends Activity implements View.OnClickListener {
-    EditText mStudentIdEt;
+    TextView mStudentIdEt;
     Button mSubmitBtn;
     RequestServerFromHttp mServer;
     String schoolId ;
@@ -34,7 +35,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         initData();
     }
     private void initView(){
-        mStudentIdEt = (EditText) findViewById(R.id.studentIdEt);
+        mStudentIdEt = (TextView) findViewById(R.id.studentIdEt);
         mSubmitBtn = (Button) findViewById(R.id.submitBtn);
         mSubmitBtn.setOnClickListener(this);
     }
