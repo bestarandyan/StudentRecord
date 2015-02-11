@@ -159,6 +159,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
     @Override
     public void onClick(View view) {
         if (view == mInBtn){
+
             Intent intent = new Intent(this,InSchoolActivity.class);
             startActivity(intent);
         }else if(view == mOutBtn){
