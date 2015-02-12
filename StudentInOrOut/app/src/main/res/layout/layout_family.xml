@@ -2,16 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="#9CD8FC"
-    android:gravity="center"
+    android:background="@drawable/input"
+    android:gravity="center_horizontal|bottom"
     android:orientation="vertical"
-    android:padding="3dp">
+    android:padding="5dp">
 
     <ImageView
         android:id="@+id/imgView"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:background="@drawable/eight" />
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:adjustViewBounds="true"
+        />
 
     <TextView
         android:id="@+id/nameTv"
@@ -19,7 +20,7 @@
         android:layout_height="wrap_content"
         android:background="@null"
         android:text="爸爸"
-        android:textColor="#000"
+        android:textColor="#0a4b74"
         android:textSize="18sp" />
 
 </LinearLayout>

@@ -3,17 +3,9 @@
     android:layout_width="400dp"
     android:layout_height="wrap_content"
     android:gravity="center"
-    android:background="#fff"
+    android:background="@drawable/shape_main_shool_id_et"
+
     android:orientation="vertical">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#333"
-        android:text="请输入学校编号"
-        android:textColor="#ffff"
-        android:textSize="20sp"
-        android:padding="10dp"
-        />
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,11 +24,13 @@
         android:layout_height="match_parent"
         android:textSize="20sp"
         android:padding="10dp"
-        android:textColor="#333"
+        android:textColor="#fff"
         android:text="确定"
         android:gravity="center"
-        android:background="@drawable/shape_main_shool_id_et"
-        android:layout_margin="30dp"
+        android:background="@drawable/selector_main_confirm_btn"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="20dp"
         android:id="@+id/dialog_btn"
         />
 </LinearLayout>

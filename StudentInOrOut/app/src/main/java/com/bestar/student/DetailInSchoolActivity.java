@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -22,6 +23,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by bestar on 2015/2/10.
@@ -57,10 +60,11 @@ public class DetailInSchoolActivity extends Activity{
         }else{
             mInSchoolTimeTv.setText("");
         }
-        mTiWenTv.setText("37.8C");
+        mTiWenTv.setText("");
         headImgUrl = RequestServerFromHttp.IMGURL+map.get("portraitpath").toString();
         new Thread(connectNet).start();
     }
+
 
     private String changeTimeStr(String time){
         String t = "";
@@ -116,18 +120,25 @@ public class DetailInSchoolActivity extends Activity{
             } catch (Exception e) {
                 Toast.makeText(DetailInSchoolActivity.this,"无法链接网络！", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
+            }finally {
+                connectHanlder.sendEmptyMessageDelayed(1,3000);
             }
 
         }
-
     };
+
 
     private Handler connectHanlder = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            // 更新UI，显示图片
-            if (mBitmap != null) {
-                mStudentHeadImg.setImageBitmap(mBitmap);// display image
+            if (msg.what == 0){
+                // 更新UI，显示图片
+                if (mBitmap != null) {
+                    mStudentHeadImg.setImageBitmap(mBitmap);// display image
+                }
+
+            }else if(msg.what == 1){
+                finish();
             }
         }
     };

@@ -2,6 +2,7 @@ package com.bestar.student;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,12 +14,17 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.InSchoolBean;
+import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Util.GetTimeNumberUtil;
 import com.bestar.student.Util.JsonData;
 import com.bestar.student.Data.MyApplication;
 import com.bestar.student.Data.RequestServerFromHttp;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,7 +33,9 @@ import java.util.TimerTask;
  */
 public class InSchoolActivity extends Activity implements View.OnClickListener {
     TextView mStudentIdEt;
-    Button mSubmitBtn;
+    Button mSubmitBtn,mCancelBtn;
+    DBHelper dbHelper = null;
+    List<Map<String, Object>> personBeanList;
     ImageButton mNumberBtn0,mNumberBtn1,mNumberBtn2,mNumberBtn3,mNumberBtn4,mNumberBtn5,mNumberBtn6,mNumberBtn7,mNumberBtn8,mNumberBtn9;
     TextView mYearNum1,mYearNum2,mYearNum3,mYearNum4,mMonthNum1,mMonthNum2,mDayNum1,mDayNum2,mHourNum1,mHourNum2,mMinuteNum1,mMinuteNum2,mWeekTv;
     RequestServerFromHttp mServer;
@@ -71,7 +79,15 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         if(view == mSubmitBtn){
-            new Thread(inSchoolRunnable).start();
+            mUserId = mStudentIdEt.getText().toString();
+            dbHelper = DBHelper.getInstance(this);
+            String sql = "select * from "+ PersonBean.tbName+" where ID = "+mUserId;
+            personBeanList = dbHelper.selectRow(sql, null);
+            if (personBeanList!=null && personBeanList.size()>0){
+                new Thread(inSchoolRunnable).start();
+            }else{
+                Toast.makeText(this,"查无此人,请重新输入！",Toast.LENGTH_LONG).show();
+            }
         }else if (view == mNumberBtn0){
             addValue("0");
         }else if (view == mNumberBtn1){
@@ -92,6 +108,8 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
             addValue("8");
         }else if (view == mNumberBtn9){
             addValue("9");
+        }else if(view == mCancelBtn){
+            deleteValue();
         }
     }
 
@@ -99,10 +117,33 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         mStudentIdEt.setText(mStudentIdEt.getText().toString().trim()+value);
     }
 
+    private void deleteValue(){
+        String value = mStudentIdEt.getText().toString().trim();
+        if (value!=null && value.length()>0){
+            mStudentIdEt.setText(value.substring(0,value.length()-1));
+
+        }
+
+    }
+    MediaPlayer player =null;
+    private void player(){
+        try {
+            player = MediaPlayer.create(this,R.raw.goin);
+            player.start();
+            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    player.release();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     Runnable inSchoolRunnable = new Runnable() {
         @Override
         public void run() {
-            mUserId = mStudentIdEt.getText().toString();
             String msg = mServer.InSchool(schoolId,mUserId);
              bean = new JsonData().jsonInSchool(msg);
             if (bean !=null && bean.getResult()!=null && bean.getResult().equals("1")){
@@ -116,7 +157,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1){
-                Toast.makeText(InSchoolActivity.this,"入园成功！",Toast.LENGTH_SHORT).show();
+                player();
                 Intent intent = new Intent(InSchoolActivity.this,DetailInSchoolActivity.class);
                 intent.putExtra("userId",mUserId);
                 intent.putExtra("time",bean.getEntertime());
@@ -134,7 +175,9 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
     private void initView(){
         mStudentIdEt = (TextView) findViewById(R.id.studentIdEt);
         mSubmitBtn = (Button) findViewById(R.id.submitBtn);
+        mCancelBtn = (Button) findViewById(R.id.cancleBtn);
         mSubmitBtn.setOnClickListener(this);
+        mCancelBtn.setOnClickListener(this);
         mNumberBtn0 = (ImageButton) findViewById(R.id.numberBtn0);
         mNumberBtn1 = (ImageButton) findViewById(R.id.numberBtn1);
         mNumberBtn2 = (ImageButton) findViewById(R.id.numberBtn2);

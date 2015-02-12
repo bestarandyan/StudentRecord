@@ -80,7 +80,6 @@ public class RequestServerFromHttp {
 			HttpResponse httpResponse = httpClient.execute(httpPost);
 			
 			msgString = EntityUtils.toString(httpResponse.getEntity());
-			System.out.println(msgString);
 			if(msgString.length()>0 && msgString.substring(0, 1).equals("<")){
 				msgString = "404";
 			}

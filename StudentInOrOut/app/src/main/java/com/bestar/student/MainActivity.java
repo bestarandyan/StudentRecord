@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -63,7 +64,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
             }
         });
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int)(MyApplication.getInstance().getScreenW()*0.7f), LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int)(MyApplication.getInstance().getScreenW()*0.5f), LinearLayout.LayoutParams.WRAP_CONTENT);
         dlg.addContentView(view, params);
         dlg.setCanceledOnTouchOutside(false);
         dlg.show();

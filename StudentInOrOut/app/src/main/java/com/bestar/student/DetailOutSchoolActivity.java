@@ -19,11 +19,21 @@ import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.FamilyBean;
 import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +51,8 @@ public class DetailOutSchoolActivity extends Activity{
     List<Map<String, Object>> familyBeanList;
     private Bitmap mBitmap;
     String headImgUrl = "";
+    DisplayImageOptions options;
+    private ImageLoadingListener animateFirstListener = new AnimateFirstDisplayListener();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +61,7 @@ public class DetailOutSchoolActivity extends Activity{
         initData();
     }
     private void initData(){
+        ImageLoader.getInstance().init(ImageLoaderConfiguration.createDefault(DetailOutSchoolActivity.this));
         mUserId = getIntent().getStringExtra("userId");
         dbHelper = DBHelper.getInstance(this);
         String sql = "select * from "+ PersonBean.tbName+" where ID = "+mUserId;
@@ -64,10 +77,76 @@ public class DetailOutSchoolActivity extends Activity{
             mInSchoolTimeTv.setText("");
         }
 
-        mTiWenTv.setText("37.8C");
-        headImgUrl = RequestServerFromHttp.IMGURL+map.get("portraitpath").toString();
-        selectFamilyData();
-        new Thread(connectNet).start();
+        mTiWenTv.setText("");
+        String headStr = map.get("portraitpath").toString();
+        if (headStr!=null && headStr.startsWith("/") && RequestServerFromHttp.IMGURL.endsWith("/")){
+            headImgUrl = RequestServerFromHttp.IMGURL+headStr.substring(1);
+        }else{
+            headImgUrl = RequestServerFromHttp.IMGURL+headStr;
+        }
+        try{
+            initOption();
+            selectFamilyData();
+            ImageLoader.getInstance().displayImage(headImgUrl, mStudentHeadImg, options, animateFirstListener);
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            handler.sendEmptyMessageDelayed(1,3000);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        ImageLoader.getInstance().clearMemoryCache();
+        ImageLoader.getInstance().clearDiskCache();
+        super.onDestroy();
+    }
+
+    public void initOption(){
+
+        options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.ic_empty)
+                .showImageForEmptyUri(R.drawable.ic_empty)
+                .showImageOnFail(R.drawable.ic_error)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .displayer(new RoundedBitmapDisplayer(20))
+                .build();
+    }
+
+    private static class AnimateFirstDisplayListener extends SimpleImageLoadingListener {
+
+        static final List<String> displayedImages = Collections.synchronizedList(new LinkedList<String>());
+
+        @Override
+        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+            if (loadedImage != null) {
+                ImageView imageView = (ImageView) view;
+                if (loadedImage!=null){
+                    imageView.setImageBitmap(loadedImage);
+                }
+                boolean firstDisplay = !displayedImages.contains(imageUri);
+                if (firstDisplay) {
+                    FadeInBitmapDisplayer.animate(imageView, 500);
+                    displayedImages.add(imageUri);
+                }
+            }
+        }
+
+        @Override
+        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+            ImageView imageView = (ImageView) view;
+            imageView.setImageResource(R.drawable.ic_empty);
+            super.onLoadingFailed(imageUri, view, failReason);
+        }
+
+        @Override
+        public void onLoadingCancelled(String imageUri, View view) {
+            ImageView imageView = (ImageView) view;
+            imageView.setImageResource(R.drawable.ic_empty);
+            super.onLoadingCancelled(imageUri, view);
+        }
     }
 
     private String changeTimeStr(String time){
@@ -90,16 +169,29 @@ public class DetailOutSchoolActivity extends Activity{
                 Map<String, Object> map = familyBeanList.get(i);
                 Object path = map.get("portraitpath");
                 Object title = map.get("contacttitle");
+                if (path!=null && !path.equals("")){
+                    if (path!=null && path.toString().startsWith("/") && RequestServerFromHttp.IMGURL.endsWith("/")){
+                        path = RequestServerFromHttp.IMGURL+path.toString().substring(1);
+                    }else{
+                        path = RequestServerFromHttp.IMGURL+path.toString();
+                    }
+                }else{
+                    path = "";
+                }
                 mFamilyLayout.addView(getFamilyLayout(path==null?"":path.toString(),title == null?"":title.toString()));
             }
         }
     }
 
-    private LinearLayout getFamilyLayout(String headImgUrl,String name){
+    private LinearLayout getFamilyLayout(String url,String name){
         LinearLayout view = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.layout_family,null);
         ImageView head = (ImageView) view.findViewById(R.id.imgView);
         TextView nameTv = (TextView) view.findViewById(R.id.nameTv);
+        if (name!=null && name.length()>5){
+            name = "未知";
+        }
         nameTv.setText(name);
+        ImageLoader.getInstance().displayImage(url, head, options, animateFirstListener);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.leftMargin = 20;
         view.setLayoutParams(params);
@@ -141,28 +233,13 @@ public class DetailOutSchoolActivity extends Activity{
         return null;
     }
 
-    private Runnable connectNet = new Runnable(){
-        @Override
-        public void run() {
-            try {
-                mBitmap = BitmapFactory.decodeStream(getImageStream(headImgUrl));
-                connectHanlder.sendEmptyMessage(0);
-            } catch (Exception e) {
-                Toast.makeText(DetailOutSchoolActivity.this, "无法链接网络！", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
 
-        }
-
-    };
-
-    private Handler connectHanlder = new Handler() {
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            // 更新UI，显示图片
-            if (mBitmap != null) {
-                mStudentHeadImg.setImageBitmap(mBitmap);// display image
-            }
+           if(msg.what == 1){
+               finish();
+           }
         }
     };
 }
