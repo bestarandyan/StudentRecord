@@ -51,10 +51,27 @@ public class DetailInSchoolActivity extends Activity{
         mNameTv.setText(map.get("petname").toString());
         mXueHaoTv.setText(map.get("userserialnum").toString());
         mClassNameTv.setText(map.get("userdescribe").toString());
-        mInSchoolTimeTv.setText("2015,2,10");
+        String time = getIntent().getStringExtra("time");
+        if (time!=null){
+            mInSchoolTimeTv.setText(changeTimeStr(time));
+        }else{
+            mInSchoolTimeTv.setText("");
+        }
         mTiWenTv.setText("37.8C");
         headImgUrl = RequestServerFromHttp.IMGURL+map.get("portraitpath").toString();
         new Thread(connectNet).start();
+    }
+
+    private String changeTimeStr(String time){
+        String t = "";
+        if (time.contains("-")){
+            t = time.replace("-",".");
+        }
+
+        if(t.split(":").length == 3){
+            t = t.substring(0,t.lastIndexOf(":"));
+        }
+        return t;
     }
     private void initView(){
         mStudentHeadImg = (ImageView) findViewById(R.id.studentHeadImg);

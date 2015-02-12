@@ -17,12 +17,19 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
+import com.bestar.student.Util.GetTimeNumberUtil;
 import com.bestar.student.Util.JsonData;
 import com.bestar.student.Data.MyApplication;
 import com.bestar.student.Data.RequestServerFromHttp;
+
+import org.w3c.dom.Text;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends Activity implements View.OnClickListener{
@@ -32,39 +39,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
     EditText mSchoolIdEt;
     ProgressDialog mProgressDialog;
     Dialog dlg =null;
+    TextView mYearNum1,mYearNum2,mYearNum3,mYearNum4,mMonthNum1,mMonthNum2,mDayNum1,mDayNum2,mHourNum1,mHourNum2,mMinuteNum1,mMinuteNum2,mWeekTv;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_main);
         initView();
         initData();
-        handler.sendEmptyMessageDelayed(2,500);
-    }
-    private void showInputDialog() {
-       dlg = new AlertDialog.Builder(this).create();
-        dlg.setCancelable(false);
-        dlg.show();
-        Window window = dlg.getWindow();
-        // *** 主要就是在这里实现这种效果的.
-        // 设置窗口的内容页面,shrew_exit_dialog.xml文件中定义view内容
-        window.setContentView(R.layout.dialog_main_school_id);
-        // 为确认按钮添加事件,执行退出应用操作
-        mSchoolIdEt = (EditText) window.findViewById(R.id.schoolEt);
-        Button dialogBtn = (Button) window.findViewById(R.id.dialog_btn);
-        dialogBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (mSchoolIdEt.getText().toString().trim().length() > 0){
-                    dlg.dismiss();
-                    showProgressDialog();
-                    new Thread(inSchoolRunnable).start();
-                }
-            }
-        });
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        InputMethodManager imm = (InputMethodManager)
-                getSystemService(INPUT_METHOD_SERVICE);
-        imm.showSoftInput(mSchoolIdEt, 0); //显示软键盘
-        imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS); //显示软键盘
+        handler.sendEmptyMessageDelayed(2, 500);
     }
 
     public void showMoreShareDialog(){
@@ -103,7 +85,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mServer = new RequestServerFromHttp();
         dbHelper = DBHelper.getInstance(this);
         setScreenInfo();
-
+        setTime();
     }
 
     private void setScreenInfo(){
@@ -143,6 +125,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
             }else  if(msg.what == -1){
                 Toast.makeText(MainActivity.this, "获取数据失败！", Toast.LENGTH_SHORT).show();
                 dismissProgressDialog();
+            }else if(msg.what == 3){
+                initTime();
             }
 
             super.handleMessage(msg);
@@ -153,8 +137,52 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mOutBtn = (Button) findViewById(R.id.chuyuanBtn);
         mInBtn.setOnClickListener(this);
         mOutBtn.setOnClickListener(this);
+        mYearNum1 = findview(R.id.nian1tv);
+        mYearNum2 = findview(R.id.nian2tv);
+        mYearNum3 = findview(R.id.nian3tv);
+        mYearNum4 = findview(R.id.nian4tv);
+        mMonthNum1 = findview(R.id.yue1tv);
+        mMonthNum2 = findview(R.id.yue2tv);
+        mDayNum1 = findview(R.id.day1tv);
+        mDayNum2 = findview(R.id.day2tv);
+        mHourNum1 = findview(R.id.time1Tv);
+        mHourNum2 = findview(R.id.time2Tv);
+        mMinuteNum1 = findview(R.id.time3Tv);
+        mMinuteNum2 = findview(R.id.time4Tv);
+        mWeekTv = findview(R.id.weekTv);
+    }
+    private TextView findview(int id){
+           return (TextView) findViewById(id);
     }
 
+    private void setTime() {
+        TimerTask localTimeTask = new TimerTask() {
+            public void run() {
+                handler.sendEmptyMessage(3);
+            }
+        };
+        new Timer().schedule(localTimeTask, 0L, 1000L);
+    }
+    public int[] mainBigNumber = {R.drawable.zero,R.drawable.one,R.drawable.two,R.drawable.three,R.drawable.four,R.drawable.five,R.drawable.six,R.drawable.seven,R.drawable.eight,R.drawable.nine};
+    public int[] mainletterNumber = {R.drawable.x_zero,R.drawable.x_one,R.drawable.x_two,R.drawable.x_three,R.drawable.x_four,R.drawable.x_five,R.drawable.x_six,R.drawable.x_seven,R.drawable.x_eight,R.drawable.x_nine};
+    public int[] weekNumber = {R.drawable.monday,R.drawable.tuesday,R.drawable.wednesday,R.drawable.thursday,R.drawable.friday,R.drawable.saturday,R.drawable.sunday};
+    private void initTime(){
+        GetTimeNumberUtil.getInstance().setmTime();
+        mYearNum1.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getNianNum1()]);
+        mYearNum2.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getNianNum2()]);
+        mYearNum3.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getNianNum3()]);
+        mYearNum4.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getNianNum4()]);
+        mMonthNum1.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getYueNum1()]);
+        mMonthNum2.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getYueNum2()]);
+        mDayNum1.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getRiNum1()]);
+        mDayNum2.setBackgroundResource(mainletterNumber[GetTimeNumberUtil.getInstance().getRiNum2()]);
+        mHourNum1.setBackgroundResource(mainBigNumber[GetTimeNumberUtil.getInstance().getHouseNum1()]);
+        mHourNum2.setBackgroundResource(mainBigNumber[GetTimeNumberUtil.getInstance().getHouseNum2()]);
+        mMinuteNum1.setBackgroundResource(mainBigNumber[GetTimeNumberUtil.getInstance().getMinuteNum1()]);
+        mMinuteNum2.setBackgroundResource(mainBigNumber[GetTimeNumberUtil.getInstance().getMinuteNum2()]);
+        int week = GetTimeNumberUtil.getInstance().getWeekNum();
+        mWeekTv.setBackgroundResource(weekNumber[week-1]);
+    }
 
     @Override
     public void onClick(View view) {
