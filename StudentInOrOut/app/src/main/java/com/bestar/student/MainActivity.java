@@ -1,20 +1,17 @@
 package com.bestar.student;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -22,12 +19,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
-import com.bestar.student.Util.GetTimeNumberUtil;
-import com.bestar.student.Util.JsonData;
 import com.bestar.student.Data.MyApplication;
 import com.bestar.student.Data.RequestServerFromHttp;
-
-import org.w3c.dom.Text;
+import com.bestar.student.Util.GetTimeNumberUtil;
+import com.bestar.student.Util.JsonData;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -41,6 +36,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
     ProgressDialog mProgressDialog;
     Dialog dlg =null;
     TextView mYearNum1,mYearNum2,mYearNum3,mYearNum4,mMonthNum1,mMonthNum2,mDayNum1,mDayNum2,mHourNum1,mHourNum2,mMinuteNum1,mMinuteNum2,mWeekTv;
+    String mSchoolId = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +54,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
         dialogBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mSchoolIdEt.getText().toString().trim().length() > 0){
+                    mSchoolId = mSchoolIdEt.getText().toString().trim();
+                    MyApplication.getInstance().setSchoolId(mSchoolId);
+                    SharedPreferences settings = MainActivity.this.getSharedPreferences("schoolId", 0);
+                    SharedPreferences.Editor localEditor = settings.edit();
+                    localEditor.putString("SchoolId",mSchoolId);
+                    localEditor.commit();
                     dlg.dismiss();
                     showProgressDialog();
                     new Thread(inSchoolRunnable).start();
@@ -99,9 +101,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
     Runnable inSchoolRunnable = new Runnable() {
         @Override
         public void run() {
-            String schoolId = mSchoolIdEt.getText().toString().trim();
-            MyApplication.getInstance().setSchoolId(schoolId);
-            String msg = mServer.getStudentData(schoolId, "0");
+            String msg = mServer.getStudentData(mSchoolId, "0");
             if (new JsonData().isSuccessGetInfo(msg, "Code")){
                 new JsonData().jsonSchoolData(msg,dbHelper.open());
                 handler.sendEmptyMessage(1);
@@ -122,7 +122,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 Toast.makeText(MainActivity.this, "获取数据成功！", Toast.LENGTH_SHORT).show();
                 dismissProgressDialog();
             }else if(msg.what == 2){
-                showMoreShareDialog();
+                String schoolId_old = getSharedPreferences("schoolId", 0).getString("SchoolId","");
+                if (schoolId_old!=null && schoolId_old.length()>0){
+                    mSchoolId = schoolId_old;
+                    showProgressDialog();
+                    new Thread(inSchoolRunnable).start();
+                }else{
+                    showMoreShareDialog();
+                }
             }else  if(msg.what == -1){
                 Toast.makeText(MainActivity.this, "获取数据失败！", Toast.LENGTH_SHORT).show();
                 dismissProgressDialog();

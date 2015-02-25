@@ -60,12 +60,26 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
         if(view == mSubmitBtn){
             mUserId = mStudentIdEt.getText().toString();
             dbHelper = DBHelper.getInstance(this);
-            String sql = "select * from "+ PersonBean.tbName+" where ID = "+ mUserId;
+            String sql = "select * from "+ PersonBean.tbName+" where ID = '"+ mUserId+"'";
             personBeanList = dbHelper.selectRow(sql, null);
             if (personBeanList!=null && personBeanList.size()>0) {
                 new Thread(inSchoolRunnable).start();
             }else{
-                Toast.makeText(this,"查无此人,请重新输入！",Toast.LENGTH_LONG).show();
+                sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId+"'";
+                personBeanList = dbHelper.selectRow(sql, null);
+                if(personBeanList!=null && personBeanList.size()>0){
+                    mUserId = personBeanList.get(0).get("id").toString();
+                    new Thread(inSchoolRunnable).start();
+                }else{
+                    sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId+"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }else {
+                        Toast.makeText(this, "查无此人,请重新输入！", Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         }else if (view == mNumberBtn0){
             addValue("0");
@@ -121,13 +135,15 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
     Runnable inSchoolRunnable = new Runnable() {
         @Override
         public void run() {
-            mUserId = mStudentIdEt.getText().toString();
             String msg = mServer.OutSchool(schoolId,mUserId);
             bean = new JsonData().jsonOutSchool(msg);
             if (bean !=null && bean.getResult()!=null && bean.getResult().equals("1")){
                 handler.sendEmptyMessage(1);
             }else{
-                handler.sendEmptyMessage(-1);
+                Message m = new Message();
+                m.what = -1;
+                m.obj = bean.getInfo();
+                handler.sendMessage(m);
             }
         }
     };
@@ -144,7 +160,7 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
             }else if(msg.what == 3){
                 initTime();
             }else{
-                Toast.makeText(OutSchoolActivity.this,"出园失败！",Toast.LENGTH_SHORT).show();
+                Toast.makeText(OutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
             }
             super.handleMessage(msg);
         }

@@ -42,6 +42,8 @@
                     android:background="@drawable/input"
                     android:inputType="number"
                     android:padding="10dp"
+                    android:textSize="30sp"
+                    android:gravity="center_vertical"
                     android:singleLine="true"
                     android:textColor="#333" />
 

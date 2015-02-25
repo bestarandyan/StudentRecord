@@ -67,9 +67,21 @@ public class JsonData {
                 contentValues.put("UserID", bean.getUserID());
                 contentValues.put("PetName", bean.getPetName());
                 contentValues.put("PortraitPath", bean.getPortraitPath());
-                contentValues.put("UserCode", bean.getUserCode());
+                String userCode = bean.getUserCode();
+                if (userCode!=null && userCode.trim().length()>0){
+                    userCode = userCode.trim();
+                }else{
+                    userCode = "";
+                }
+                contentValues.put("UserCode", userCode);
                 contentValues.put("UserDescribe", bean.getUserDescribe());
-                contentValues.put("UserSerialNum", bean.getUserSerialNum());
+                String userSerialNum = bean.getUserSerialNum();
+                if (userSerialNum!=null && userSerialNum.trim().length()>0){
+                    userSerialNum = userSerialNum.trim();
+                }else{
+                    userSerialNum = "";
+                }
+                contentValues.put("UserSerialNum",userSerialNum);
                 int a = database.update(PersonBean.tbName, contentValues, "ID=?", new String[]{bean.getID()+""});
                 if(a == 0){
                     database.insert(PersonBean.tbName, null, contentValues);

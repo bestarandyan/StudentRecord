@@ -43,6 +43,8 @@
                     android:inputType="number"
                     android:padding="10dp"
                     android:singleLine="true"
+                    android:textSize="30sp"
+                    android:gravity="center_vertical"
                     android:textColor="#333" />
 
                 <LinearLayout
