@@ -6,6 +6,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -59,7 +61,6 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
     public void onClick(View view) {
         if(view == mSubmitBtn){
             mUserId = mStudentIdEt.getText().toString();
-            dbHelper = DBHelper.getInstance(this);
             String sql = "select * from "+ PersonBean.tbName+" where ID = '"+ mUserId+"'";
             personBeanList = dbHelper.selectRow(sql, null);
             if (personBeanList!=null && personBeanList.size()>0) {
@@ -136,14 +137,18 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
         @Override
         public void run() {
             String msg = mServer.OutSchool(schoolId,mUserId);
-            bean = new JsonData().jsonOutSchool(msg);
-            if (bean !=null && bean.getResult()!=null && bean.getResult().equals("1")){
-                handler.sendEmptyMessage(1);
-            }else{
-                Message m = new Message();
-                m.what = -1;
-                m.obj = bean.getInfo();
-                handler.sendMessage(m);
+            if (msg.equals("404")){
+                handler.sendEmptyMessage(-2);
+            }else {
+                bean = new JsonData().jsonOutSchool(msg);
+                if (bean != null && bean.getResult() != null && bean.getResult().equals("1")) {
+                    handler.sendEmptyMessage(1);
+                } else {
+                    Message m = new Message();
+                    m.what = -1;
+                    m.obj = bean.getInfo();
+                    handler.sendMessage(m);
+                }
             }
         }
     };
@@ -156,11 +161,14 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                 Intent intent = new Intent(OutSchoolActivity.this,DetailOutSchoolActivity.class);
                 intent.putExtra("userId",mUserId);
                 intent.putExtra("time",bean.getLeavetime());
+                mStudentIdEt.setText("");
                 startActivity(intent);
             }else if(msg.what == 3){
                 initTime();
-            }else{
+            }else if(msg.what == -1){
                 Toast.makeText(OutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
+            }else if(msg.what == -2){
+                Toast.makeText(OutSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
             }
             super.handleMessage(msg);
         }
@@ -187,6 +195,7 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
     }
 
     private void initView(){
+        dbHelper = DBHelper.getInstance(this);
         mStudentIdEt = (TextView) findViewById(R.id.studentIdEt);
         mSubmitBtn = (Button) findViewById(R.id.submitBtn);
         mSubmitBtn = (Button) findViewById(R.id.submitBtn);
@@ -226,6 +235,40 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
         mMinuteNum1 = findview(R.id.time3Tv);
         mMinuteNum2 = findview(R.id.time4Tv);
         mWeekTv = findview(R.id.weekTv);
+        mStudentIdEt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                mUserId = mStudentIdEt.getText().toString().trim();
+                if (mUserId!=null && mUserId.length() == 10 ){
+                    String sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId +"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }
+                }else if (mUserId!=null && mUserId.length() == 11 ){
+                    String sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId +"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }else {
+                        Toast.makeText(OutSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
+                        mStudentIdEt.setText("");
+                    }
+                }
+            }
+        });
     }
     private TextView findview(int id){
         return (TextView) findViewById(id);

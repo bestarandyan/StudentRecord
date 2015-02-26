@@ -6,23 +6,22 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.InSchoolBean;
+import com.bestar.student.Data.MyApplication;
 import com.bestar.student.Data.PersonBean;
+import com.bestar.student.Data.RequestServerFromHttp;
 import com.bestar.student.Util.GetTimeNumberUtil;
 import com.bestar.student.Util.JsonData;
-import com.bestar.student.Data.MyApplication;
-import com.bestar.student.Data.RequestServerFromHttp;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -80,7 +79,6 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
         if(view == mSubmitBtn){
             mUserId = mStudentIdEt.getText().toString();
-            dbHelper = DBHelper.getInstance(this);
             String sql = "select * from "+ PersonBean.tbName+" where ID = '"+mUserId+"'";
             personBeanList = dbHelper.selectRow(sql, null);
             if (personBeanList!=null && personBeanList.size()>0){
@@ -160,15 +158,20 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         @Override
         public void run() {
             String msg = mServer.InSchool(schoolId,mUserId);
-             bean = new JsonData().jsonInSchool(msg);
-            if (bean !=null && bean.getResult()!=null && (bean.getResult().equals("1") || bean.getInfo().contains("已入园"))){
-                handler.sendEmptyMessage(1);
+            if (msg.equals("404")){
+                handler.sendEmptyMessage(-2);
             }else{
-                Message m = new Message();
-                m.what = -1;
-                m.obj = bean.getInfo();
-                handler.sendMessage(m);
+                bean = new JsonData().jsonInSchool(msg);
+                if (bean !=null && bean.getResult()!=null && (bean.getResult().equals("1") || bean.getInfo().contains("已入园"))){
+                    handler.sendEmptyMessage(1);
+                }else{
+                    Message m = new Message();
+                    m.what = -1;
+                    m.obj = bean.getInfo();
+                    handler.sendMessage(m);
+                }
             }
+
         }
     };
     Handler handler = new Handler(){
@@ -179,11 +182,14 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
                 Intent intent = new Intent(InSchoolActivity.this,DetailInSchoolActivity.class);
                 intent.putExtra("userId",mUserId);
                 intent.putExtra("time",bean.getEntertime());
+                mStudentIdEt.setText("");
                 startActivity(intent);
             }else if(msg.what == 3){
                 initTime();
-            }else{
+            }else if(msg.what == -1){
                 Toast.makeText(InSchoolActivity.this,msg.obj!=null?msg.obj.toString():"入园失败！",Toast.LENGTH_SHORT).show();
+            }else if(msg.what == -2){
+                Toast.makeText(InSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
             }
             super.handleMessage(msg);
         }
@@ -191,6 +197,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
 
 
     private void initView(){
+        dbHelper = DBHelper.getInstance(this);
         mStudentIdEt = (TextView) findViewById(R.id.studentIdEt);
         mSubmitBtn = (Button) findViewById(R.id.submitBtn);
         mCancelBtn = (Button) findViewById(R.id.cancleBtn);
@@ -229,6 +236,40 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         mMinuteNum1 = findview(R.id.time3Tv);
         mMinuteNum2 = findview(R.id.time4Tv);
         mWeekTv = findview(R.id.weekTv);
+        mStudentIdEt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                mUserId = mStudentIdEt.getText().toString().trim();
+                if (mUserId!=null && mUserId.length() == 10 ){
+                    String sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId +"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }
+                }else if (mUserId!=null && mUserId.length() == 11 ){
+                    String sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId +"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }else {
+                        Toast.makeText(InSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
+                        mStudentIdEt.setText("");
+                    }
+                }
+            }
+        });
     }
     private TextView findview(int id){
         return (TextView) findViewById(id);
