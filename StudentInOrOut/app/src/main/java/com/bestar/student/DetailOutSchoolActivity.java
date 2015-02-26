@@ -1,11 +1,15 @@
 package com.bestar.student;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +21,11 @@ import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.FamilyBean;
+import com.bestar.student.Data.MyApplication;
+import com.bestar.student.Data.OutSchoolBean;
 import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
+import com.bestar.student.Util.JsonData;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -44,6 +51,7 @@ public class DetailOutSchoolActivity extends Activity{
     ImageView mStudentHeadImg;
     TextView mNameTv,mXueHaoTv,mClassNameTv,mInSchoolTimeTv,mTiWenTv;
     LinearLayout mFamilyLayout;
+    TextView mStudentIdEt;
     String mUserId;
     Button mOverBtn;
     DBHelper dbHelper = null;
@@ -51,7 +59,10 @@ public class DetailOutSchoolActivity extends Activity{
     List<Map<String, Object>> familyBeanList;
     private Bitmap mBitmap;
     String headImgUrl = "";
+    String schoolId ;
     DisplayImageOptions options;
+    OutSchoolBean bean =null;
+    RequestServerFromHttp mServer;
     private ImageLoadingListener animateFirstListener = new AnimateFirstDisplayListener();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,24 +70,30 @@ public class DetailOutSchoolActivity extends Activity{
         setContentView(R.layout.a_out_school_detail);
         initView();
         initData();
+        requestData();
+        mStudentIdEt.setFocusable(true);
+        mStudentIdEt.requestFocus();
     }
     private void initData(){
         ImageLoader.getInstance().init(ImageLoaderConfiguration.createDefault(DetailOutSchoolActivity.this));
         mUserId = getIntent().getStringExtra("userId");
+        mServer = new RequestServerFromHttp();
+        schoolId = MyApplication.getInstance().getSchoolId();
         dbHelper = DBHelper.getInstance(this);
-        String sql = "select * from "+ PersonBean.tbName+" where ID = "+mUserId;
-        personBeanList = dbHelper.selectRow(sql, null);
-        Map<String, Object> map = personBeanList.get(0);
-        mNameTv.setText(map.get("petname").toString());
-        mXueHaoTv.setText(map.get("userserialnum").toString());
-        mClassNameTv.setText(map.get("userdescribe").toString());
         String time = getIntent().getStringExtra("time");
         if (time!=null){
             mInSchoolTimeTv.setText(changeTimeStr(time));
         }else{
             mInSchoolTimeTv.setText("");
         }
-
+    }
+    private void requestData(){
+        String sql = "select * from "+ PersonBean.tbName+" where ID = "+mUserId;
+        personBeanList = dbHelper.selectRow(sql, null);
+        Map<String, Object> map = personBeanList.get(0);
+        mNameTv.setText(map.get("petname").toString());
+        mXueHaoTv.setText(map.get("userserialnum").toString());
+        mClassNameTv.setText(map.get("userdescribe").toString());
         mTiWenTv.setText("");
         String headStr = map.get("portraitpath").toString();
         if (headStr!=null && headStr.startsWith("/") && RequestServerFromHttp.IMGURL.endsWith("/")){
@@ -91,7 +108,9 @@ public class DetailOutSchoolActivity extends Activity{
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-            handler.sendEmptyMessageDelayed(1,3000);
+            mStudentIdEt.setFocusable(true);
+            mStudentIdEt.requestFocus();
+            handler.sendEmptyMessageDelayed(9,1000);
         }
     }
 
@@ -162,6 +181,7 @@ public class DetailOutSchoolActivity extends Activity{
     }
 
     private  void selectFamilyData(){
+        mFamilyLayout.removeAllViews();
         String sql = "select * from "+ FamilyBean.tbName+" where SchoolPersonnelID = "+mUserId;
         familyBeanList = dbHelper.selectRow(sql,null);
         if (familyBeanList!= null && familyBeanList.size() > 0){
@@ -200,6 +220,7 @@ public class DetailOutSchoolActivity extends Activity{
 
 
     private void initView(){
+        mStudentIdEt = (TextView) findViewById(R.id.numberTv);
         mStudentHeadImg = (ImageView) findViewById(R.id.studentHeadImg);
         mFamilyLayout = (LinearLayout) findViewById(R.id.familyLayout);
         mNameTv = (TextView) findViewById(R.id.UserNameTv);
@@ -214,8 +235,60 @@ public class DetailOutSchoolActivity extends Activity{
                 finish();
             }
         });
-    }
+        mStudentIdEt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
 
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                mUserId = mStudentIdEt.getText().toString().trim();
+                if (mUserId!=null && mUserId.length() == 10 ){
+                    String sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId +"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }
+                }else if (mUserId!=null && mUserId.length() == 11 ){
+                    String sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId +"'";
+                    personBeanList = dbHelper.selectRow(sql, null);
+                    if(personBeanList!=null && personBeanList.size()>0){
+                        mUserId = personBeanList.get(0).get("id").toString();
+                        new Thread(inSchoolRunnable).start();
+                    }else {
+                        Toast.makeText(DetailOutSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
+    }
+    Runnable inSchoolRunnable = new Runnable() {
+        @Override
+        public void run() {
+            isChecking = true;
+            String msg = mServer.OutSchool(schoolId,mUserId);
+            if (msg.equals("404")){
+                handler.sendEmptyMessage(-2);
+            }else {
+                bean = new JsonData().jsonOutSchool(msg);
+                if (bean != null && bean.getResult() != null && bean.getResult().equals("1")) {
+                    handler.sendEmptyMessage(1);
+                } else {
+                    Message m = new Message();
+                    m.what = -1;
+                    m.obj = bean.getInfo();
+                    handler.sendMessage(m);
+                }
+            }
+        }
+    };
     /**
      * Get image from newwork
      * @param path The path of image
@@ -232,14 +305,41 @@ public class DetailOutSchoolActivity extends Activity{
         }
         return null;
     }
-
-
+    MediaPlayer player =null;
+    private void player(){
+        try {
+            player = MediaPlayer.create(this,R.raw.goout);
+            player.start();
+            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    player.release();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+boolean isChecking = false;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-           if(msg.what == 1){
-               finish();
+           if(msg.what == 9){
+               if (!isChecking){
+                   finish();
+               }
+           }else if (msg.what == 1){
+               player();
+               requestData();
+           }else if(msg.what == 3){
+           }else if(msg.what == -1){
+               Toast.makeText(DetailOutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
+           }else if(msg.what == -2){
+               Toast.makeText(DetailOutSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
            }
+            mStudentIdEt.setText("");
+            mStudentIdEt.setFocusable(true);
+            mStudentIdEt.requestFocus();
         }
     };
 }

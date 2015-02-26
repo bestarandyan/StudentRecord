@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -154,6 +155,13 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mStudentIdEt.setFocusable(true);
+        mStudentIdEt.requestFocus();
+    }
+
     Runnable inSchoolRunnable = new Runnable() {
         @Override
         public void run() {
@@ -174,6 +182,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
 
         }
     };
+
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -183,7 +192,7 @@ public class InSchoolActivity extends Activity implements View.OnClickListener {
                 intent.putExtra("userId",mUserId);
                 intent.putExtra("time",bean.getEntertime());
                 mStudentIdEt.setText("");
-                startActivity(intent);
+                startActivityForResult(intent, 1);
             }else if(msg.what == 3){
                 initTime();
             }else if(msg.what == -1){
