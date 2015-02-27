@@ -14,22 +14,28 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.MyApplication;
+import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
+import com.bestar.student.Util.CommUtils;
 import com.bestar.student.Util.GetTimeNumberUtil;
 import com.bestar.student.Util.JsonData;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
 public class MainActivity extends Activity implements View.OnClickListener{
     Button mInBtn,mOutBtn;
+    ImageButton mRefreshBtn;
     DBHelper dbHelper = null;
     RequestServerFromHttp mServer;
     EditText mSchoolIdEt;
@@ -43,7 +49,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         setContentView(R.layout.a_main);
         initView();
         initData();
-        handler.sendEmptyMessageDelayed(2, 500);
+
     }
 
     public void showMoreShareDialog(){
@@ -56,13 +62,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 if (mSchoolIdEt.getText().toString().trim().length() > 0){
                     mSchoolId = mSchoolIdEt.getText().toString().trim();
                     MyApplication.getInstance().setSchoolId(mSchoolId);
-                    SharedPreferences settings = MainActivity.this.getSharedPreferences("schoolId", 0);
-                    SharedPreferences.Editor localEditor = settings.edit();
-                    localEditor.putString("SchoolId",mSchoolId);
-                    localEditor.commit();
+                    saveData("schoolId", mSchoolId);
                     dlg.dismiss();
                     showProgressDialog();
-                    new Thread(inSchoolRunnable).start();
+                    new Thread(getDataRunnable).start();
                 }
             }
         });
@@ -89,6 +92,17 @@ public class MainActivity extends Activity implements View.OnClickListener{
         dbHelper = DBHelper.getInstance(this);
         setScreenInfo();
         setTime();
+        handler.sendEmptyMessageDelayed(2, 500);
+    }
+
+    private boolean hasData(){
+        String sql = "select * from "+ PersonBean.tbName;
+        List<Map<String,Object>> list = dbHelper.selectRow(sql,null);
+        if (list!=null && list.size()>0){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     private void setScreenInfo(){
@@ -98,43 +112,56 @@ public class MainActivity extends Activity implements View.OnClickListener{
         MyApplication.getInstance().setScreenW(width);
         MyApplication.getInstance().setScreenH(height);
     }
-    Runnable inSchoolRunnable = new Runnable() {
+    Runnable getDataRunnable = new Runnable() {
         @Override
         public void run() {
-            String msg = mServer.getStudentData(mSchoolId, "0");
-            if (new JsonData().isSuccessGetInfo(msg, "Code")){
-                new JsonData().jsonSchoolData(msg,dbHelper.open());
-                handler.sendEmptyMessage(1);
+            if (CommUtils.isOpenNetwork(MainActivity.this)){
+                String msg = mServer.getStudentData(mSchoolId, "0");
+                if (new JsonData().isSuccessGetInfo(msg, "Code")){
+                    new JsonData().jsonSchoolData(msg,dbHelper.open());
+                    handler.sendEmptyMessage(1);
+                }else{
+                    handler.sendEmptyMessage(-1);
+                }
             }else{
-                handler.sendEmptyMessage(-1);
+                handler.sendEmptyMessage(8);
             }
-
-//            String sql = "select * from "+ PersonBean.tbName;
-//            List<Map<String, Object>> listPerson = dbHelper.selectRow(sql, null);
-//            Log.d("bestar", listPerson.size()+"");
         }
     };
 
+    private void saveData(String tag,String value){
+        SharedPreferences settings = MainActivity.this.getSharedPreferences(tag, 0);
+        SharedPreferences.Editor localEditor = settings.edit();
+        localEditor.putString(tag,value);
+        localEditor.commit();
+    }
+    boolean isGetSuccess = false;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1) {
+                isGetSuccess = true;
+                saveData("getDataDate",GetTimeNumberUtil.getInstance().getDateNumber());
                 Toast.makeText(MainActivity.this, "获取数据成功！", Toast.LENGTH_SHORT).show();
                 dismissProgressDialog();
             }else if(msg.what == 2){
-                String schoolId_old = getSharedPreferences("schoolId", 0).getString("SchoolId","");
-                if (schoolId_old!=null && schoolId_old.length()>0){
+                String schoolId_old = getSharedPreferences("schoolId", 0).getString("schoolId","");
+                String lastGetDataDate = getSharedPreferences("getDataDate", 0).getString("getDataDate","");
+                if (lastGetDataDate.equals(GetTimeNumberUtil.getInstance().getDateNumber()) && hasData() && schoolId_old!=null && schoolId_old.length()>0){
+                    isGetSuccess = true;
                     mSchoolId = schoolId_old;
-                    showProgressDialog();
-                    new Thread(inSchoolRunnable).start();
-                }else{
-                    showMoreShareDialog();
+                    MyApplication.getInstance().setSchoolId(mSchoolId);
+                    saveData("schoolId", mSchoolId);
+                    return;
                 }
+                getData();
             }else  if(msg.what == -1){
-                Toast.makeText(MainActivity.this, "获取数据失败！", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "获取数据失败！请检查网络连接", Toast.LENGTH_SHORT).show();
                 dismissProgressDialog();
             }else if(msg.what == 3){
                 initTime();
+            }else if(msg.what == 8){
+                Toast.makeText(MainActivity.this, "网络连接失败，请检查网络连接！", Toast.LENGTH_LONG).show();
             }
 
             super.handleMessage(msg);
@@ -143,8 +170,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private void initView(){
         mInBtn = (Button) findViewById(R.id.ruyuanBtn);
         mOutBtn = (Button) findViewById(R.id.chuyuanBtn);
+        mRefreshBtn = (ImageButton) findViewById(R.id.refreshBtn);
         mInBtn.setOnClickListener(this);
         mOutBtn.setOnClickListener(this);
+        mRefreshBtn.setOnClickListener(this);
         mYearNum1 = findview(R.id.nian1tv);
         mYearNum2 = findview(R.id.nian2tv);
         mYearNum3 = findview(R.id.nian3tv);
@@ -194,12 +223,40 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     @Override
     public void onClick(View view) {
-        if (view == mInBtn){
-            Intent intent = new Intent(this,InSchoolActivity.class);
-            startActivity(intent);
-        }else if(view == mOutBtn){
-            Intent intent = new Intent(this,OutSchoolActivity.class);
-            startActivity(intent);
+        if (CommUtils.isOpenNetwork(MainActivity.this)){
+            if (view == mInBtn){
+                if (isGetSuccess){
+                    Intent intent = new Intent(this,InSchoolActivity.class);
+                    startActivity(intent);
+                }else{
+                    Toast.makeText(MainActivity.this, "请获取学生信息！", Toast.LENGTH_SHORT).show();
+                }
+            }else if(view == mOutBtn){
+                if (isGetSuccess) {
+                    Intent intent = new Intent(this, OutSchoolActivity.class);
+                    startActivity(intent);
+                }else{
+                    Toast.makeText(MainActivity.this, "请获取学生信息！", Toast.LENGTH_SHORT).show();
+                }
+            }else if(view == mRefreshBtn){
+                getData();
+            }
+        }else{
+            handler.sendEmptyMessage(8);
+        }
+
+    }
+
+    private void getData(){
+        String schoolId_old = getSharedPreferences("schoolId", 0).getString("schoolId","");
+        if (schoolId_old!=null && schoolId_old.length()>0){
+            mSchoolId = schoolId_old;
+            MyApplication.getInstance().setSchoolId(mSchoolId);
+            saveData("schoolId", mSchoolId);
+            showProgressDialog();
+            new Thread(getDataRunnable).start();
+        }else{
+            showMoreShareDialog();
         }
     }
 }

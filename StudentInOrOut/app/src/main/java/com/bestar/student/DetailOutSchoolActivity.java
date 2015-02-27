@@ -25,6 +25,7 @@ import com.bestar.student.Data.MyApplication;
 import com.bestar.student.Data.OutSchoolBean;
 import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Data.RequestServerFromHttp;
+import com.bestar.student.Util.CommUtils;
 import com.bestar.student.Util.JsonData;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -43,6 +44,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by bestar on 2015/2/10.
@@ -63,7 +66,10 @@ public class DetailOutSchoolActivity extends Activity{
     DisplayImageOptions options;
     OutSchoolBean bean =null;
     RequestServerFromHttp mServer;
+    int checkedCount = 0;
+    int lastCount = 0;
     private ImageLoadingListener animateFirstListener = new AnimateFirstDisplayListener();
+    Timer mTimer = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,9 +116,42 @@ public class DetailOutSchoolActivity extends Activity{
         }finally {
             mStudentIdEt.setFocusable(true);
             mStudentIdEt.requestFocus();
-            handler.sendEmptyMessageDelayed(9,1000);
+            lastCount = checkedCount;
+            cancleTimeTask();
+            mTimer = new Timer();
+            localTimeTask = new TimerTask() {
+                public void run() {
+                    handler.sendEmptyMessage(9);
+                }
+            };
+            mTimer.schedule(localTimeTask, 3000L, 3000L);
         }
     }
+
+    private void cancleTimeTask(){
+        if (mTimer!=null){
+            mTimer.cancel();
+            mTimer = null;
+            if (localTimeTask!=null){
+                localTimeTask.cancel();
+                localTimeTask = null;
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        cancleTimeTask();
+        super.onPause();
+    }
+
+    TimerTask localTimeTask = new TimerTask() {
+        public void run() {
+            handler.sendEmptyMessage(9);
+        }
+    };
+
+
 
     @Override
     protected void onDestroy() {
@@ -248,20 +287,25 @@ public class DetailOutSchoolActivity extends Activity{
 
             @Override
             public void afterTextChanged(Editable editable) {
-                mUserId = mStudentIdEt.getText().toString().trim();
-                if (mUserId!=null && mUserId.length() == 10 ){
+              String str = mStudentIdEt.getText().toString().trim();
+                if (str!=null && str.length() == 10 ){
+                    mUserId = mStudentIdEt.getText().toString().trim();
+                    mStudentIdEt.setText("");
+                    mStudentIdEt.setFocusable(true);
+                    mStudentIdEt.requestFocus();
                     String sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId +"'";
                     personBeanList = dbHelper.selectRow(sql, null);
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
-                        new Thread(inSchoolRunnable).start();
+                        new Thread(outSchoolRunnable).start();
                     }
-                }else if (mUserId!=null && mUserId.length() == 11 ){
+                }else if (str!=null && str.length() == 11 ){
+                    mUserId = mStudentIdEt.getText().toString().trim();
                     String sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId +"'";
                     personBeanList = dbHelper.selectRow(sql, null);
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
-                        new Thread(inSchoolRunnable).start();
+                        new Thread(outSchoolRunnable).start();
                     }else {
                         Toast.makeText(DetailOutSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
                     }
@@ -269,10 +313,12 @@ public class DetailOutSchoolActivity extends Activity{
             }
         });
     }
-    Runnable inSchoolRunnable = new Runnable() {
+
+    Runnable outSchoolRunnable = new Runnable() {
         @Override
         public void run() {
-            isChecking = true;
+            if (CommUtils.isOpenNetwork(DetailOutSchoolActivity.this)) {
+            checkedCount ++;
             String msg = mServer.OutSchool(schoolId,mUserId);
             if (msg.equals("404")){
                 handler.sendEmptyMessage(-2);
@@ -287,24 +333,37 @@ public class DetailOutSchoolActivity extends Activity{
                     handler.sendMessage(m);
                 }
             }
+            }else{
+                handler.sendEmptyMessage(8);
+            }
         }
     };
-    /**
-     * Get image from newwork
-     * @param path The path of image
-     * @return InputStream
-     * @throws Exception
-     */
-    public InputStream getImageStream(String path) throws Exception{
-        URL url = new URL(path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(5 * 1000);
-        conn.setRequestMethod("GET");
-        if(conn.getResponseCode() == HttpURLConnection.HTTP_OK){
-            return conn.getInputStream();
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+           if(msg.what == 9){
+               if (checkedCount == lastCount){
+                   finish();
+               }
+           }else if (msg.what == 1){
+               player();
+               requestData();
+           }else if(msg.what == 3){
+           }else if(msg.what == -1){
+               Toast.makeText(DetailOutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
+           }else if(msg.what == -2){
+               Toast.makeText(DetailOutSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
+           }else if(msg.what == 8){
+               Toast.makeText(DetailOutSchoolActivity.this, "网络连接失败，请检查网络连接！", Toast.LENGTH_LONG).show();
+           }
+            mStudentIdEt.setText("");
+            mStudentIdEt.setFocusable(true);
+            mStudentIdEt.requestFocus();
         }
-        return null;
-    }
+    };
+
+
     MediaPlayer player =null;
     private void player(){
         try {
@@ -320,26 +379,4 @@ public class DetailOutSchoolActivity extends Activity{
             e.printStackTrace();
         }
     }
-boolean isChecking = false;
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-           if(msg.what == 9){
-               if (!isChecking){
-                   finish();
-               }
-           }else if (msg.what == 1){
-               player();
-               requestData();
-           }else if(msg.what == 3){
-           }else if(msg.what == -1){
-               Toast.makeText(DetailOutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
-           }else if(msg.what == -2){
-               Toast.makeText(DetailOutSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
-           }
-            mStudentIdEt.setText("");
-            mStudentIdEt.setFocusable(true);
-            mStudentIdEt.requestFocus();
-        }
-    };
 }

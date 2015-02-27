@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
 import com.bestar.student.Data.PersonBean;
+import com.bestar.student.Util.CommUtils;
 import com.bestar.student.Util.GetTimeNumberUtil;
 import com.bestar.student.Util.JsonData;
 import com.bestar.student.Data.MyApplication;
@@ -64,19 +65,19 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
             String sql = "select * from "+ PersonBean.tbName+" where ID = '"+ mUserId+"'";
             personBeanList = dbHelper.selectRow(sql, null);
             if (personBeanList!=null && personBeanList.size()>0) {
-                new Thread(inSchoolRunnable).start();
+                new Thread(outSchoolRunnable).start();
             }else{
                 sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId+"'";
                 personBeanList = dbHelper.selectRow(sql, null);
                 if(personBeanList!=null && personBeanList.size()>0){
                     mUserId = personBeanList.get(0).get("id").toString();
-                    new Thread(inSchoolRunnable).start();
+                    new Thread(outSchoolRunnable).start();
                 }else{
                     sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId+"'";
                     personBeanList = dbHelper.selectRow(sql, null);
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
-                        new Thread(inSchoolRunnable).start();
+                        new Thread(outSchoolRunnable).start();
                     }else {
                         Toast.makeText(this, "查无此人,请重新输入！", Toast.LENGTH_LONG).show();
                     }
@@ -133,22 +134,29 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
             e.printStackTrace();
         }
     }
-    Runnable inSchoolRunnable = new Runnable() {
+    boolean isChecking = false;
+    Runnable outSchoolRunnable = new Runnable() {
         @Override
         public void run() {
-            String msg = mServer.OutSchool(schoolId,mUserId);
-            if (msg.equals("404")){
-                handler.sendEmptyMessage(-2);
-            }else {
-                bean = new JsonData().jsonOutSchool(msg);
-                if (bean != null && bean.getResult() != null && bean.getResult().equals("1")) {
-                    handler.sendEmptyMessage(1);
+            if (CommUtils.isOpenNetwork(OutSchoolActivity.this)) {
+                String msg = mServer.OutSchool(schoolId, mUserId);
+                if (msg.equals("404")) {
+                    handler.sendEmptyMessage(-2);
                 } else {
-                    Message m = new Message();
-                    m.what = -1;
-                    m.obj = bean.getInfo();
-                    handler.sendMessage(m);
+                    bean = new JsonData().jsonOutSchool(msg);
+                    if (bean != null && bean.getResult() != null && bean.getResult().equals("1")) {
+                        isChecking = false;
+                        player();
+                        handler.sendEmptyMessageDelayed(1, 0);
+                    } else {
+                        Message m = new Message();
+                        m.what = -1;
+                        m.obj = bean.getInfo();
+                        handler.sendMessage(m);
+                    }
                 }
+            }else{
+                handler.sendEmptyMessage(8);
             }
         }
     };
@@ -162,22 +170,35 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1){
-                player();
-                Intent intent = new Intent(OutSchoolActivity.this,DetailOutSchoolActivity.class);
-                intent.putExtra("userId",mUserId);
-                intent.putExtra("time",bean.getLeavetime());
-                mStudentIdEt.setText("");
-                startActivityForResult(intent, 1);
+                setViewFocus();
+                if (!isChecking) {
+                    Intent intent = new Intent(OutSchoolActivity.this, DetailOutSchoolActivity.class);
+                    intent.putExtra("userId", mUserId);
+                    intent.putExtra("time", bean.getLeavetime());
+                    startActivityForResult(intent, 1);
+                }
             }else if(msg.what == 3){
                 initTime();
             }else if(msg.what == -1){
                 Toast.makeText(OutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
+                setViewFocus();
             }else if(msg.what == -2){
                 Toast.makeText(OutSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
+                setViewFocus();
+            }else if(msg.what == 8){
+                Toast.makeText(OutSchoolActivity.this, "网络连接失败，请检查网络连接！", Toast.LENGTH_LONG).show();
+                setViewFocus();
             }
             super.handleMessage(msg);
         }
     };
+
+    private void setViewFocus(){
+        mStudentIdEt.setText("");
+        mStudentIdEt.setFocusable(true);
+        mStudentIdEt.requestFocus();
+    }
+
     public int[] mainBigNumber = {R.drawable.ru_x_zero,R.drawable.ru_x_one,R.drawable.ru_x_two,R.drawable.ru_x_three,R.drawable.ru_x_four,R.drawable.ru_x_five,R.drawable.ru_x_six,R.drawable.ru_x_seven,R.drawable.ru_x_eight,R.drawable.ru_x_nine};
     public int[] mainletterNumber = {R.drawable.xx_zero,R.drawable.xx_one,R.drawable.xx_two,R.drawable.xx_three,R.drawable.xx_four,R.drawable.xx_five,R.drawable.xx_six,R.drawable.xx_seven,R.drawable.xx_eight,R.drawable.xx_nine};
     public int[] weekNumber = {R.drawable.x_monday,R.drawable.x_tuesday,R.drawable.x_wednesday,R.drawable.x_thursday,R.drawable.x_friday,R.drawable.x_saturday,R.drawable.x_sunday};
@@ -253,20 +274,26 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
 
             @Override
             public void afterTextChanged(Editable editable) {
-                mUserId = mStudentIdEt.getText().toString().trim();
-                if (mUserId!=null && mUserId.length() == 10 ){
+                String str = mStudentIdEt.getText().toString().trim();
+                if (str!=null && str.length() == 10 ){
+                    mUserId = mStudentIdEt.getText().toString().trim();
+                    setViewFocus();
+                    isChecking = true;
                     String sql = "select * from "+ PersonBean.tbName+" where UserCode = '"+mUserId +"'";
                     personBeanList = dbHelper.selectRow(sql, null);
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
-                        new Thread(inSchoolRunnable).start();
+                        new Thread(outSchoolRunnable).start();
                     }
-                }else if (mUserId!=null && mUserId.length() == 11 ){
+                }else if (str!=null && str.length() == 11 ){
+                    mUserId = mStudentIdEt.getText().toString().trim();
                     String sql = "select * from "+ PersonBean.tbName+" where UserSerialNum = '"+mUserId +"'";
+                    setViewFocus();
+                    isChecking = true;
                     personBeanList = dbHelper.selectRow(sql, null);
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
-                        new Thread(inSchoolRunnable).start();
+                        new Thread(outSchoolRunnable).start();
                     }else {
                         Toast.makeText(OutSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
                         mStudentIdEt.setText("");

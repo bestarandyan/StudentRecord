@@ -26,8 +26,8 @@
 
         <ImageView
             android:id="@+id/studentHeadImg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="260dp"
+            android:layout_height="260dp"
             android:adjustViewBounds="true"
             android:background="@drawable/input"
             android:padding="10dp"

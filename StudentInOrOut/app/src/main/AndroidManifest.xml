@@ -96,12 +96,14 @@
             android:name="com.bestar.student.DetailInSchoolActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"
             ></activity>
 
         <activity
             android:name="com.bestar.student.DetailOutSchoolActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"
             ></activity>
     </application>
 

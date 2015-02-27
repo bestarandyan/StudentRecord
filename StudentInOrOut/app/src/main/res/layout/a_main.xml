@@ -204,5 +204,14 @@
         android:layout_marginTop="30dp"
         android:layout_toRightOf="@id/mainCenterLayout"
         android:background="@drawable/selector_main_chuyuan_btn" />
+    <ImageButton
+        android:id="@+id/refreshBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/icon_update" />
+
+
 
 </RelativeLayout>

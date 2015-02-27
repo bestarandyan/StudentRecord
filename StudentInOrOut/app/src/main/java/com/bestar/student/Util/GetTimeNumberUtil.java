@@ -46,6 +46,10 @@ public class GetTimeNumberUtil{
         return mTime.year%10;
     }
 
+    public String getDateNumber(){
+        return mTime.year+""+mTime.month+""+mTime.monthDay;
+    }
+
     public int getYueNum1(){
         if (mTime.month+1<10){
             return 0;
