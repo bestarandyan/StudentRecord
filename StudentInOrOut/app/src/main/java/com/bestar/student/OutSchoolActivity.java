@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bestar.student.Data.DBHelper;
+import com.bestar.student.Data.FamilyBean;
 import com.bestar.student.Data.PersonBean;
 import com.bestar.student.Util.CommUtils;
 import com.bestar.student.Util.GetTimeNumberUtil;
@@ -78,8 +79,15 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(outSchoolRunnable).start();
-                    }else {
-                        Toast.makeText(this, "查无此人,请重新输入！", Toast.LENGTH_LONG).show();
+                    }else{
+                        sql = "select * from "+ FamilyBean.tbName+" where IDCard = '"+mUserId +"'";
+                        personBeanList = dbHelper.selectRow(sql, null);
+                        if(personBeanList!=null && personBeanList.size()>0){
+                            mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
+                            new Thread(outSchoolRunnable).start();
+                        }else {
+                            Toast.makeText(this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
             }
@@ -122,14 +130,18 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
     MediaPlayer player =null;
     private void player(){
         try {
-            player = MediaPlayer.create(this,R.raw.goout);
-            player.start();
-            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-                    player.release();
-                }
-            });
+            if (player !=null && !player.isPlaying()){
+                player.start();
+            }else{
+                player = MediaPlayer.create(this,R.raw.goout);
+                player.start();
+            }
+//            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                @Override
+//                public void onCompletion(MediaPlayer mediaPlayer) {
+//                    player.release();
+//                }
+//            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -284,6 +296,15 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(outSchoolRunnable).start();
+                    }else{
+                        sql = "select * from "+ FamilyBean.tbName+" where IDCard = '"+mUserId +"'";
+                        personBeanList = dbHelper.selectRow(sql, null);
+                        if(personBeanList!=null && personBeanList.size()>0){
+                            mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
+                            new Thread(outSchoolRunnable).start();
+                        }else {
+                            Toast.makeText(OutSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                        }
                     }
                 }else if (str!=null && str.length() == 11 ){
                     mUserId = mStudentIdEt.getText().toString().trim();
@@ -295,8 +316,7 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(outSchoolRunnable).start();
                     }else {
-                        Toast.makeText(OutSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
-                        mStudentIdEt.setText("");
+                        Toast.makeText(OutSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_SHORT).show();
                     }
                 }
             }

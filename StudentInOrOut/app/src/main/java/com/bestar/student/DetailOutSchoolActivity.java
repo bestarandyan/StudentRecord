@@ -298,6 +298,15 @@ public class DetailOutSchoolActivity extends Activity{
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(outSchoolRunnable).start();
+                    }else{
+                        sql = "select * from "+ FamilyBean.tbName+" where IDCard = '"+mUserId +"'";
+                        personBeanList = dbHelper.selectRow(sql, null);
+                        if(personBeanList!=null && personBeanList.size()>0){
+                            mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
+                            new Thread(outSchoolRunnable).start();
+                        }else {
+                            Toast.makeText(DetailOutSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                        }
                     }
                 }else if (str!=null && str.length() == 11 ){
                     mUserId = mStudentIdEt.getText().toString().trim();
@@ -307,7 +316,7 @@ public class DetailOutSchoolActivity extends Activity{
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(outSchoolRunnable).start();
                     }else {
-                        Toast.makeText(DetailOutSchoolActivity.this, "查无此人,请重新输入！", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DetailOutSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -353,7 +362,7 @@ public class DetailOutSchoolActivity extends Activity{
            }else if(msg.what == -1){
                Toast.makeText(DetailOutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
            }else if(msg.what == -2){
-               Toast.makeText(DetailOutSchoolActivity.this,"入园失败！",Toast.LENGTH_SHORT).show();
+               Toast.makeText(DetailOutSchoolActivity.this,"出园失败！",Toast.LENGTH_SHORT).show();
            }else if(msg.what == 8){
                Toast.makeText(DetailOutSchoolActivity.this, "网络连接失败，请检查网络连接！", Toast.LENGTH_LONG).show();
            }
@@ -367,14 +376,18 @@ public class DetailOutSchoolActivity extends Activity{
     MediaPlayer player =null;
     private void player(){
         try {
-            player = MediaPlayer.create(this,R.raw.goout);
-            player.start();
-            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-                    player.release();
-                }
-            });
+            if (player !=null && !player.isPlaying()){
+                player.start();
+            }else{
+                player = MediaPlayer.create(this,R.raw.goout);
+                player.start();
+            }
+//            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                @Override
+//                public void onCompletion(MediaPlayer mediaPlayer) {
+//                    player.release();
+//                }
+//            });
         } catch (Exception e) {
             e.printStackTrace();
         }
