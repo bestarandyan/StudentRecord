@@ -79,12 +79,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mProgressDialog.setMessage("正在加载数据，请稍候...");
         mProgressDialog.setTitle("提示：");
+        mProgressDialog.setCancelable(false);
         mProgressDialog.show();
     }
 
     private void dismissProgressDialog(){
-        mProgressDialog.dismiss();
-        mProgressDialog = null;
+        if (mProgressDialog!=null){
+            mProgressDialog.dismiss();
+            mProgressDialog = null;
+        }
     }
 
     private void initData(){

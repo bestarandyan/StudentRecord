@@ -5,12 +5,12 @@
     android:background="@drawable/input"
     android:gravity="center_horizontal|bottom"
     android:orientation="vertical"
-    android:padding="5dp">
+    android:padding="10dp">
 
     <ImageView
         android:id="@+id/imgView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:adjustViewBounds="true"
         />
 
@@ -20,7 +20,8 @@
         android:layout_height="wrap_content"
         android:background="@null"
         android:text="爸爸"
+        android:textStyle="bold"
         android:textColor="#0a4b74"
-        android:textSize="18sp" />
+        android:textSize="25sp" />
 
 </LinearLayout>

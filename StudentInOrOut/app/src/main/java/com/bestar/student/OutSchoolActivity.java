@@ -46,6 +46,19 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
     String schoolId ;
     String mUserId = "";
     OutSchoolBean bean =null;
+    boolean isInput = false;//判断是否手动输入过
+    Timer mTimer = new Timer();
+    private void cancleTimeTask(){
+        if (mTimer!=null){
+            mTimer.cancel();
+            mTimer = null;
+            if (localTimeTask!=null){
+                localTimeTask.cancel();
+                localTimeTask = null;
+            }
+        }
+    }
+    TimerTask localTimeTask = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,8 +98,15 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                         if(personBeanList!=null && personBeanList.size()>0){
                             mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
                             new Thread(outSchoolRunnable).start();
-                        }else {
-                            Toast.makeText(this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                        }else{
+                            sql = "select * from "+ FamilyBean.tbName+" where ContactTel = '"+mUserId +"'";
+                            personBeanList = dbHelper.selectRow(sql, null);
+                            if(personBeanList!=null && personBeanList.size()>0){
+                                mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
+                                new Thread(outSchoolRunnable).start();
+                            }else {
+                                Toast.makeText(this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                            }
                         }
                     }
                 }
@@ -117,13 +137,17 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
     }
 
     private void addValue(String value){
+        isInput =  true;
         mStudentIdEt.setText(mStudentIdEt.getText().toString().trim()+value);
     }
 
     private void deleteValue(){
         String value = mStudentIdEt.getText().toString().trim();
         if (value!=null && value.length()>0){
+            isInput = true;
             mStudentIdEt.setText(value.substring(0,value.length()-1));
+        }else{
+            isInput = false;
         }
 
     }
@@ -191,6 +215,17 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                 }
             }else if(msg.what == 3){
                 initTime();
+            }else if(msg.what == 4){
+                String  currentId = mStudentIdEt.getText().toString().trim();
+                if (currentId.length() == mUserId.length()){
+                    cancleTimeTask();
+                    setViewFocus();
+                }
+            }else if(msg.what == 5){
+                isInput = false;
+                String  currentId = mStudentIdEt.getText().toString().trim();
+                mStudentIdEt.setText(currentId.substring(0,10));
+
             }else if(msg.what == -1){
                 Toast.makeText(OutSchoolActivity.this,msg.obj!=null?msg.obj.toString():"出园失败！",Toast.LENGTH_SHORT).show();
                 setViewFocus();
@@ -287,6 +322,9 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
             @Override
             public void afterTextChanged(Editable editable) {
                 String str = mStudentIdEt.getText().toString().trim();
+                if (isInput && str.length()<=11){
+                    return;
+                }
                 if (str!=null && str.length() == 10 ){
                     mUserId = mStudentIdEt.getText().toString().trim();
                     setViewFocus();
@@ -315,13 +353,35 @@ public class OutSchoolActivity extends Activity implements View.OnClickListener 
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(outSchoolRunnable).start();
-                    }else {
-                        Toast.makeText(OutSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_SHORT).show();
+                    }else{
+                        sql = "select * from "+ FamilyBean.tbName+" where ContactTel = '"+mUserId +"'";
+                        personBeanList = dbHelper.selectRow(sql, null);
+                        if(personBeanList!=null && personBeanList.size()>0){
+                            mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
+                            new Thread(outSchoolRunnable).start();
+                        }else {
+                            Toast.makeText(OutSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                            startTimeTask(4);
+                        }
                     }
+                }else if(str!=null && str.length() > 11){
+                    mUserId = mStudentIdEt.getText().toString().trim();
+                    startTimeTask(5);
                 }
             }
         });
     }
+    private void startTimeTask(final int h){
+        cancleTimeTask();
+        mTimer = new Timer();
+        localTimeTask = new TimerTask() {
+            public void run() {
+                handler.sendEmptyMessage(h);
+            }
+        };
+        mTimer.schedule(localTimeTask, 1000L);
+    }
+
     private TextView findview(int id){
         return (TextView) findViewById(id);
     }

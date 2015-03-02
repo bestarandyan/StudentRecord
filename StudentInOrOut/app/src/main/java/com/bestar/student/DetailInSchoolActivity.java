@@ -264,8 +264,15 @@ public class DetailInSchoolActivity extends Activity{
                     if(personBeanList!=null && personBeanList.size()>0){
                         mUserId = personBeanList.get(0).get("id").toString();
                         new Thread(inSchoolRunnable).start();
-                    }else {
-                        Toast.makeText(DetailInSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_SHORT).show();
+                    }else{
+                        sql = "select * from "+ FamilyBean.tbName+" where ContactTel = '"+mUserId +"'";
+                        personBeanList = dbHelper.selectRow(sql, null);
+                        if(personBeanList!=null && personBeanList.size()>0){
+                            mUserId = personBeanList.get(0).get("schoolpersonnelid").toString();
+                            new Thread(inSchoolRunnable).start();
+                        }else {
+                            Toast.makeText(DetailInSchoolActivity.this, "查无此人,请重新刷卡！", Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
             }
