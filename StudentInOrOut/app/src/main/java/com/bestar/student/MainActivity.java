@@ -43,6 +43,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
     Dialog dlg =null;
     TextView mYearNum1,mYearNum2,mYearNum3,mYearNum4,mMonthNum1,mMonthNum2,mDayNum1,mDayNum2,mHourNum1,mHourNum2,mMinuteNum1,mMinuteNum2,mWeekTv;
     String mSchoolId = "";
+    Button mChangeBtn;
+    int changeBtnClickSum = 0;//修改学校id的按钮的点击次数   只有在点击数等于3的时候才能弹出框框
+    Long lastClickTime = 0L;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -174,6 +177,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mInBtn = (Button) findViewById(R.id.ruyuanBtn);
         mOutBtn = (Button) findViewById(R.id.chuyuanBtn);
         mRefreshBtn = (ImageButton) findViewById(R.id.refreshBtn);
+        mChangeBtn = (Button) findViewById(R.id.changeIdBtn);
+        mChangeBtn.setOnClickListener(this);
         mInBtn.setOnClickListener(this);
         mOutBtn.setOnClickListener(this);
         mRefreshBtn.setOnClickListener(this);
@@ -243,6 +248,18 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 }
             }else if(view == mRefreshBtn){
                 getData();
+            }else if(view == mChangeBtn){
+                changeBtnClickSum++;
+                long currentTime = System.currentTimeMillis();
+                long cha = currentTime - lastClickTime;
+                if (cha >2000){
+                    changeBtnClickSum = 1;
+                }
+                lastClickTime = System.currentTimeMillis();
+                if (changeBtnClickSum == 3){
+                    changeBtnClickSum = 0;
+                    showMoreShareDialog();
+                }
             }
         }else{
             handler.sendEmptyMessage(8);

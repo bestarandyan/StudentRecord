@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">入园机</string>
+    <string name="app_name">零至壹</string>
     <string name="ruyuan">入园</string>
     <string name="chuyuan">出园</string>
     <string name="queding">确定</string>
-    <string name="phone_text">全国服务电话：400-0706-617</string>
+    <string name="phone_text">服务电话：028-84778552</string>
 </resources>
